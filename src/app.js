@@ -12,8 +12,7 @@ const allowedOrigins = [
   'http://localhost:3000', 
   'http://127.0.0.1:8080',
   'http://127.0.0.1:5173',
-  'https://yourdomain.com', // Replace with your actual domain
-  'https://another-frontend-domain.com'
+  'http://65.0.132.108', // Replace with your actual domain
 ];
 
 const corsOptions = {
