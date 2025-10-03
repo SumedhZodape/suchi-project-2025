@@ -2029,3 +2029,29 @@ export const updateDropdownItem = async (req, res) => {
     });
   }
 };
+
+
+
+// delete karyakari mandal user
+export const deleteKaryakriMandalUser = async (req, res) =>{
+  try {
+    const { id } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ message: "Invalid user ID format" });
+    }
+
+    const deletedUser = await AbkmUser.findByIdAndDelete(id);
+    if (!deletedUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.status(200).json({ message: "User deleted successfully" });
+  } catch (error) {
+    console.error("Delete error:", error);
+    res.status(500).json({
+      message: "Error deleting user",
+      error: error.message,
+    });
+  }
+}

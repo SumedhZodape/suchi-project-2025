@@ -17,7 +17,8 @@ import {
   updateDropdownStatus,
   getParticularPrantname,
   getParticularSanghatanname, sendMail, createAdminSetting, getAdminSettings, updateAdminSetting, deleteAdminSetting, createSubmitData, getSubmitData,
-  updateDropdownItem
+  updateDropdownItem,
+  deleteKaryakriMandalUser
 } from "../controllers/adminController.js";
 import { authenticate } from "../middlewares/auth.js";
 import multer from "multer";
@@ -91,4 +92,5 @@ router.get("/all-abkm-users/:year", authenticate, allAbkmUsers);
 // Route for adding or updating an ABKM user
 router.post("/add-abkm-user", authenticate, addOrUpdateAbkmUser);
 router.put("/update_dropdown/:type/:id", authenticate, updateDropdownItem);
+router.delete("/delete-abkm-user/:id", authenticate, deleteKaryakriMandalUser);
 export default router;
