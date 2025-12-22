@@ -530,7 +530,9 @@ export const getDashboardData = async (req, res) => {
     const pratinidhiDataCount = await User.countDocuments({
       dayitva_id: { $in: pratinidhiDayitvaIds },
       year,
+      star_id: "6842c5184919f039da177fda"
     });
+
 
     // Purv Prant Pracharak Data
     const purvPrantPracharakNames = ["पूर्व प्रांत प्रचारक"];
@@ -698,22 +700,44 @@ export const getPrant = async (req, res) => {
     });
   }
 };
-
 export const getParticularPrantname = async (req, res) => {
   try {
-    const { id } = req.params;
+    const { id, role } = req.params;
+    console.log("Prant ID:", id, "Role:", role);
 
     if (!id) {
       return res.status(400).json({ message: "Prant ID is required" });
     }
 
-    const users = await User.find({ prant_id: id })
-      .populate("star_id", "name")
-      .populate("prakar_id", "name")
-      .populate("sanghatan_id", "name")
-      .populate("dayitva_id", "name")
-      .populate("kshetra_id", "name")
-      .populate("prant_id", "name");
+    // 🔹 Common populate
+    const populateFields = [
+      { path: "star_id", select: "name" },
+      { path: "prakar_id", select: "name" },
+      { path: "sanghatan_id", select: "name" },
+      { path: "dayitva_id", select: "name" },
+      { path: "kshetra_id", select: "name" },
+      { path: "prant_id", select: "name" }
+    ];
+
+    let query = { prant_id: id };
+
+    // ================= ROLE BASED CONDITIONS =================
+    if (role === "user") {
+      query.$and = [
+        { prakar_id: "6842c12f4919f039da177f50" },
+        { sanghatan_id: "6842c4b64919f039da177fd1" }
+      ];
+    }
+    else if (role !== "admin") {
+      query.$and = [
+        { prakar_id: { $ne: "6842c12f4919f039da177f50" } },
+        { sanghatan_id: { $ne: "6842c4b64919f039da177fd1" } }
+      ];
+    }
+    // admin → only prant_id filter applies
+
+    const users = await User.find(query).populate(populateFields);
+
     const mappedUsers = users.map((user) => {
       const obj = user.toObject();
       return {
@@ -739,7 +763,6 @@ export const getParticularPrantname = async (req, res) => {
         palak_adhikari_baithak: obj.palak_adhikari_baithak,
         gender: obj.gender,
         attendance: obj.attendance,
-        // usertype: obj.usertype,
         year: obj.year,
         createdAt: obj.createdAt,
         updatedAt: obj.updatedAt,
@@ -747,10 +770,11 @@ export const getParticularPrantname = async (req, res) => {
       };
     });
 
-    res.status(200).json(mappedUsers);
+    return res.status(200).json(mappedUsers);
+
   } catch (error) {
     console.error("Error fetching prant:", error);
-    res.status(500).json({
+    return res.status(500).json({
       message: "Error fetching prant",
       error: error.message,
     });
@@ -1019,7 +1043,7 @@ export const addOrUpdatePratinidhiUser = async (req, res) => {
     }
 
     // Set current year
-    const currentYear = new Date().getFullYear().toString();
+    const currentYear = 2026;
 
     const userData = {
       name,
@@ -1043,7 +1067,7 @@ export const addOrUpdatePratinidhiUser = async (req, res) => {
       palak_adhikari_baithak: !!palak_adhikari_baithak,
       gender: gender.toLowerCase(),
       attendance: attendance ? attendance.toLowerCase() : "p",
-      year: currentYear,
+      year: 2026,
     };
 
     let user;
@@ -1292,7 +1316,7 @@ export const addOrUpdatePrantPracharakUser = async (req, res) => {
     }
 
     // Set current year
-    const currentYear = new Date().getFullYear().toString();
+    const currentYear = 2026;
 
     const userData = {
       name,
@@ -1312,7 +1336,7 @@ export const addOrUpdatePrantPracharakUser = async (req, res) => {
       kshetra_pracharak_baithak: !!kshetra_pracharak_baithak,
       gender: gender.toLowerCase(),
       attendance: attendance ? attendance.toLowerCase() : "p",
-      year: currentYear,
+      year: 2026,
     };
 
     let user;
@@ -1705,7 +1729,7 @@ export const addOrUpdateAbkmUser = async (req, res) => {
       return res.status(400).json({ message: "Invalid attendance value" });
     }
 
-    const currentYear = new Date().getFullYear().toString();
+    const currentYear = 2026;
 
     const userData = {
       name,
@@ -1728,7 +1752,7 @@ export const addOrUpdateAbkmUser = async (req, res) => {
       bhougolic_palak_adhikari_baithak: !!bhougolic_palak_adhikari_baithak,
       gender: gender.toLowerCase(),
       attendance: attendance ? attendance.toLowerCase() : "p",
-      year: currentYear,
+      year: 2026,
     };
 
     let user;
@@ -1769,8 +1793,11 @@ export const sendMail = async (req, res) => {
       sanghatan,
       columns,
       userDataKeys,
+      email
     } = req.body;
 
+    console.log("sanghatan", sanghatan)
+    console.log("prant", prant)
     if (
       !name ||
       // !date ||
@@ -1806,33 +1833,29 @@ export const sendMail = async (req, res) => {
     const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
-        user: process.env.MAIL_USER,
-        pass: process.env.MAIL_PASS,
+        user: "abpslistforngp@gmail.com",
+        pass: "yyzb iisc phcz srag",
       },
     });
 
     let detailName;
-    if (sanghatan === "स्वदेशी जागरण मंच") {
+    if (sanghatan.trim() !== "") {
       detailName = sanghatan;
     } else {
       detailName = prant;
     }
     const mailOptions = {
-      from: process.env.MAIL_USER,
-      to: "receiver.email@example.com",
-      subject: `(${detailName}) सूची रिपोर`,
+      from: "abpslistforngp@gmail.com",
+      to: `${email}, sachivalay@sanghngp.org`,
+      subject: `(${detailName}) सूची`,
       text: `
-        नमस्ते,
-        यह रही ${detailName} की सूची:
-        नाम: ${name}
-        तारीख: ${date}
-        वर्ष: ${year}
-
-        कृपया अटैचमेंट देखें।
+        नमस्ते,\n\nप्रतिनिधी सभा 2026 के लिये आपके संगठन की सूची संलग्न है।\n\nधन्यवाद।\n\n
+        कृपया इस मेल पर कोई जवाब ना दे| sachivalay@sanghngp.org पर ही संपर्क करें|
+        Please do not reply to this email. All communication to be done on sachivalay@sanghngp.org,
       `,
       attachments: [
         {
-          filename: "user_list.csv",
+          filename: "attachment.csv",
           content: csv,
           contentType: "text/csv; charset=utf-8", // ✅ ensure correct charset
           encoding: "utf-8", // ✅ explicitly set encoding
@@ -2033,7 +2056,7 @@ export const updateDropdownItem = async (req, res) => {
 
 
 // delete karyakari mandal user
-export const deleteKaryakriMandalUser = async (req, res) =>{
+export const deleteKaryakriMandalUser = async (req, res) => {
   try {
     const { id } = req.params;
 

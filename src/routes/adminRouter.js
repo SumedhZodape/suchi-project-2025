@@ -45,7 +45,7 @@ router.post("/upload/:type", authenticate, upload.single("file"), uploadUsers);
 router.get("/dashboard-data/:year", authenticate, getDashboardData);
 router.get("/all-users/:year", authenticate, allUsers);
 router.get("/prants", getPrant);
-router.get("/prant/:id", authenticate, getParticularPrantname);
+router.get("/prant/:id/:role", authenticate, getParticularPrantname);
 
 router.get("/sanghatan", getSanghatan);
 router.get("/sanghatan/:id", authenticate, getParticularSanghatanname);
