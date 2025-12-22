@@ -637,7 +637,7 @@ export const getDashboardData = async (req, res) => {
 export const allUsers = async (req, res) => {
   try {
     const { year } = req.params;
-    console.log(year);
+
     const users = await User.find({ year })
       .populate("star_id", "name")
       .populate("prakar_id", "name")
@@ -646,7 +646,19 @@ export const allUsers = async (req, res) => {
       .populate("kshetra_id", "name")
       .populate("prant_id", "name");
 
-    // Map users to return only required fields and rename keys
+    // ⭐ Star priority order
+    const STAR_ORDER = [
+      "अ. भा.",
+      "क्षेत्र",
+      "पूर्व प्रांत प्रचारक",
+      "प्रतिनिधी",
+      "प्रांत",
+      "विभाग प्रचारक",
+      "विविध क्षेत्र",
+      "विशेष निमंत्रित"
+    ];
+
+    // 🧠 Map users
     const mappedUsers = users.map((user) => {
       const obj = user.toObject();
       return {
@@ -672,7 +684,6 @@ export const allUsers = async (req, res) => {
         palak_adhikari_baithak: obj.palak_adhikari_baithak,
         gender: obj.gender,
         attendance: obj.attendance,
-        // usertype: obj.usertype,
         year: obj.year,
         createdAt: obj.createdAt,
         updatedAt: obj.updatedAt,
@@ -680,7 +691,20 @@ export const allUsers = async (req, res) => {
       };
     });
 
+    // 🔥 SORT users by Star order
+    mappedUsers.sort((a, b) => {
+      const indexA = STAR_ORDER.indexOf(a.star);
+      const indexB = STAR_ORDER.indexOf(b.star);
+
+      // If star not found, push to bottom
+      const posA = indexA === -1 ? 999 : indexA;
+      const posB = indexB === -1 ? 999 : indexB;
+
+      return posA - posB;
+    });
+
     res.status(200).json(mappedUsers);
+
   } catch (error) {
     res.status(500).json({
       message: "Error fetching users",
@@ -688,6 +712,7 @@ export const allUsers = async (req, res) => {
     });
   }
 };
+
 
 export const getPrant = async (req, res) => {
   try {
