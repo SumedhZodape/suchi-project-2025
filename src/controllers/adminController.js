@@ -637,7 +637,7 @@ export const getDashboardData = async (req, res) => {
 export const allUsers = async (req, res) => {
   try {
     const { year } = req.params;
-
+    console.log(year);
     const users = await User.find({ year })
       .populate("star_id", "name")
       .populate("prakar_id", "name")
@@ -646,160 +646,48 @@ export const allUsers = async (req, res) => {
       .populate("kshetra_id", "name")
       .populate("prant_id", "name");
 
-    const STAR_ORDER = [
-      "अ. भा.",
-      "क्षेत्र",
-      "प्रांत",
-      "विभाग प्रचारक",
-      "प्रतिनिधी",
-      "पूर्व प्रांत प्रचारक",
-      "विविध क्षेत्र",
-      "विशेष निमंत्रित"
-    ];
-
-    const DAYITVA = {
-      "अ. भा.": [
-        "प.पू.सरसंघचालक","मा. सरकार्यवाह","सह सरकार्यवाह",
-        "अ.भा. शारीरिक प्रमुख","अ.भा. सह शारीरिक प्रमुख",
-        "अ.भा. बौद्धिक प्रमुख","अ.भा. सह बौद्धिक प्रमुख",
-        "अ.भा. व्यवस्था प्रमुख","अ.भा. सह व्यवस्था प्रमुख",
-        "अ.भा. सेवा प्रमुख","अ.भा. सह सेवा प्रमुख",
-        "अ.भा. संपर्क प्रमुख","अ.भा. सह संपर्क प्रमुख",
-        "अ.भा. प्रचार प्रमुख","अ.भा. सह प्रचार प्रमुख",
-        "अ.भा. प्रचारक प्रमुख","अ.भा. सह प्रचारक प्रमुख",
-        "अ.भा. कार्यकारिणी सदस्य","अ.भा. निमंत्रित सदस्य",
-        "प्रचार टोली सदस्य"
-      ],
-      "क्षेत्र": [
-        "मा. क्षेत्र संघचालक","मा. सह क्षेत्र संघचालक",
-        "क्षेत्र कार्यवाह","सह क्षेत्र कार्यवाह",
-        "क्षेत्र प्रचारक","सह क्षेत्र प्रचारक",
-        "क्षेत्र प्रचारक प्रमुख","सह क्षेत्र प्रचारक प्रमुख",
-        "क्षेत्र शारीरिक प्रमुख","सह क्षेत्र शारीरिक प्रमुख",
-        "क्षेत्र बौद्धिक प्रमुख","सह क्षेत्र बौद्धिक प्रमुख",
-        "क्षेत्र व्यवस्था प्रमुख","सह क्षेत्र व्यवस्था प्रमुख",
-        "क्षेत्र सेवा प्रमुख","सह क्षेत्र सेवा प्रमुख",
-        "क्षेत्र संपर्क प्रमुख","सह क्षेत्र संपर्क प्रमुख",
-        "क्षेत्र प्रचार प्रमुख","सह क्षेत्र प्रचार प्रमुख"
-      ],
-      "प्रांत": [
-        "मा. प्रांत संघचालक","मा. सह प्रांत संघचालक",
-        "प्रांत कार्यवाह","सह प्रांत कार्यवाह",
-        "प्रांत प्रचारक","सह प्रांत प्रचारक",
-        "प्रांत प्रचारक प्रमुख",
-        "प्रांत शारीरिक प्रमुख","प्रांत बौद्धिक प्रमुख",
-        "प्रांत व्यवस्था प्रमुख","प्रांत सेवा प्रमुख",
-        "प्रांत संपर्क प्रमुख","प्रांत प्रचार प्रमुख",
-        "विभाग प्रचारक","प्रतिनिधि",
-        "पूर्व प्रांत प्रचारक","विविध क्षेत्र","विशेष निमंत्रित"
-      ]
-    };
-
-    const KSHETRA_ORDER = [
-      "दक्षिण क्षेत्र","दक्षिण मध्य क्षेत्र","पश्चिम क्षेत्र",
-      "मध्य क्षेत्र","उत्तर पश्चिम क्षेत्र","उत्तर क्षेत्र",
-      "पश्चिम उत्तरप्रदेश क्षेत्र","पूर्वी उत्तरप्रदेश क्षेत्र",
-      "उत्तर पूर्व क्षेत्र","पूर्व क्षेत्र","असम क्षेत्र",
-      "नेपाल","विश्व विभाग"
-    ];
-
-    const PRANT_ORDER = [
-      "केरल दक्षिण","केरल उत्तर","द.तमिलनाडु","उ.तमिलनाडु",
-      "कर्नाटक द.","कर्नाटक उ.","तेलंगाणा","आन्ध्र प्रदेश",
-      "कोकण","पश्चिम महाराष्ट्र","देवगिरी","गुजरात","सौराष्ट्र",
-      "विदर्भ","मालवा","मध्य भारत","महाकोशल","छत्तीसगढ",
-      "चित्तौड","जयपुर","जोधपुर","दिल्ली","हरियाणा","पंजाब",
-      "जम्मू कश्मीर","हिमाचल","उत्तराखंड","मेरठ","ब्रज",
-      "कानपुर","अवध","काशी","गोरक्ष","उ बिहार","द.बिहार",
-      "झारखण्ड","ओडिशा पू","ओडिशा प","द बंग","म बंग","उ बंग",
-      "उ असम","अरुणाचल","द. असम","मणिपुर","त्रिपुरा","नेपाल"
-    ];
-
-    const output = [];
-    const pushed = new Set();
-
-    for (const star of STAR_ORDER) {
-      const starUsers = users.filter(u => u.star_id?.name === star);
-      if (!starUsers.length) continue;
-
-      if (star === "अ. भा.") {
-        for (const d of DAYITVA["अ. भा."]) {
-          starUsers
-            .filter(u => u.dayitva_id?.name === d)
-            .forEach(u => {
-              output.push(mapUser(u));
-              pushed.add(String(u._id));
-            });
-        }
-      }
-
-      if (star === "क्षेत्र") {
-        for (const k of KSHETRA_ORDER) {
-          for (const d of DAYITVA["क्षेत्र"]) {
-            starUsers
-              .filter(u => u.kshetra_id?.name === k && u.dayitva_id?.name === d)
-              .forEach(u => {
-                output.push(mapUser(u));
-                pushed.add(String(u._id));
-              });
-          }
-        }
-      }
-
-      if (star === "प्रांत") {
-        for (const p of PRANT_ORDER) {
-          for (const d of DAYITVA["प्रांत"]) {
-            starUsers
-              .filter(u => u.prant_id?.name === p && u.dayitva_id?.name === d)
-              .forEach(u => {
-                output.push(mapUser(u));
-                pushed.add(String(u._id));
-              });
-          }
-        }
-      }
-    }
-
-    users.forEach(u => {
-      if (!pushed.has(String(u._id))) output.push(mapUser(u));
+    // Map users to return only required fields and rename keys
+    const mappedUsers = users.map((user) => {
+      const obj = user.toObject();
+      return {
+        _id: obj._id,
+        name: obj.name,
+        star: obj.star_id?.name || "",
+        prakar: obj.prakar_id?.name || "",
+        sanghatan: obj.sanghatan_id?.name || "",
+        dayitva: obj.dayitva_id?.name || "",
+        kshetra: obj.kshetra_id?.name || "",
+        prant: obj.prant_id?.name || "",
+        kendra: obj.kendra,
+        mobile_no_1: obj.mobile_no_1,
+        mobile_no_2: obj.mobile_no_2,
+        email: obj.email,
+        a_b_karykarini_baithak: obj.a_b_karykarini_baithak,
+        kshetra_k_p_baithak: obj.kshetra_k_p_baithak,
+        prant_k_p_baithak: obj.prant_k_p_baithak,
+        karyakari_madal: obj.karyakari_madal,
+        pratinidhi_sabha: obj.pratinidhi_sabha,
+        prant_p_baithak: obj.prant_p_baithak,
+        kshetra_p_baithak: obj.kshetra_p_baithak,
+        palak_adhikari_baithak: obj.palak_adhikari_baithak,
+        gender: obj.gender,
+        attendance: obj.attendance,
+        // usertype: obj.usertype,
+        year: obj.year,
+        createdAt: obj.createdAt,
+        updatedAt: obj.updatedAt,
+        __v: obj.__v,
+      };
     });
 
-    res.status(200).json(output);
-  } catch (err) {
-    res.status(500).json({ message: "Matrix hierarchy failed", error: err.message });
+    res.status(200).json(mappedUsers);
+  } catch (error) {
+    res.status(500).json({
+      message: "Error fetching users",
+      error: error.message,
+    });
   }
 };
-
-function mapUser(u) {
-  console.log(u)
-  return {
-    _id: u._id,
-    name: u.name,
-    star: u.star_id?.name || "",
-    prakar: u.prakar_id?.name || "",
-    sanghatan: u.sanghatan_id?.name || "",
-    dayitva: u.dayitva_id?.name || "",
-    kshetra: u.kshetra_id?.name || "",
-    prant: u.prant_id?.name || "",
-    kendra: u.kendra,
-    mobile_no_1: u.mobile_no_1,
-    mobile_no_2: u.mobile_no_2,
-    email: u.email,
-    gender: u.gender,
-    attendance: u.attendance,
-    year: u.year,
-    a_b_karykarini_baithak: u.a_b_karykarini_baithak,
-    kshetra_k_p_baithak: u.kshetra_k_p_baithak,
-    prant_k_p_baithak: u.prant_k_p_baithak,
-    karyakari_madal: u.karyakari_madal,
-    pratinidhi_sabha: u.pratinidhi_sabha,
-    prant_p_baithak: u.prant_p_baithak,
-    kshetra_p_baithak: u.kshetra_p_baithak,
-    palak_adhikari_baithak: u.palak_adhikari_baithak,
-    createdAt: u.createdAt,
-    updatedAt: u.updatedAt
-  };
-}
 
 
 
