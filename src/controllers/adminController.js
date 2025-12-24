@@ -2066,7 +2066,7 @@ export const deleteKaryakriMandalUser = async (req, res) => {
       return res.status(400).json({ message: "Invalid user ID format" });
     }
 
-    const deletedUser = await AbkmUser.findByIdAndDelete(id);
+    const deletedUser = await User.findByIdAndDelete(id);
     if (!deletedUser) {
       return res.status(404).json({ message: "User not found" });
     }
