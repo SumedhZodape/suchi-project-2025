@@ -637,7 +637,6 @@ export const getDashboardData = async (req, res) => {
 export const allUsers = async (req, res) => {
   try {
     const { year } = req.params;
-    console.log(year);
     const users = await User.find({ year })
       .populate("star_id", "name")
       .populate("prakar_id", "name")
@@ -696,16 +695,98 @@ export const allUsers = async (req, res) => {
 
 
 export const getPrant = async (req, res) => {
+  const PRANT_ORDER = [
+    "केरल दक्षिण",
+    "केरल उत्तर",
+    "द.तमिलनाडु",
+    "उ.तमिलनाडु",
+    "कर्नाटक द.",
+    "कर्नाटक उ.",
+    "आन्ध्र प्रदेश",
+    "तेलंगाना",
+    "कोकण",
+    "पश्चिम महाराष्ट्र",
+    "देवगिरी",
+    "गुजरात",
+    "सौराष्ट्र",
+    "विदर्भ",
+    "मालवा",
+    "मध्य भारत",
+    "महाकोशल",
+    "छत्तीसगढ",
+    "चित्तौड",
+    "जयपुर",
+    "जोधपुर",
+    "दिल्ली",
+    "हरियाणा",
+    "पंजाब",
+    "जम्मू काश्मिर",
+    "हिमाचल",
+    "उत्तराखंड",
+    "मेरठ",
+    "ब्रज",
+    "कानपुर",
+    "अवध",
+    "काशी",
+    "गोरक्ष",
+    "उ बिहार",
+    "द.बिहार",
+    "झारखण्ड",
+    "ओडिशा पू",
+    "ओडिशा प",
+    "द बंग",
+    "म बंग",
+    "उ बंग",
+    "उ असम",
+    "अरुणाचल",
+    "द. असम",
+    "मणिपुर",
+    "त्रिपुरा",
+    "नेपाल"
+  ];
   try {
-    const prants = await Prant.find().select("name");
-    res.status(200).json(prants);
+
+    // 1️⃣ Get ALL prants
+    const prants = await Prant.find()
+      .select("name kshetra_id active")
+      .lean();
+
+
+    // 2️⃣ Create order map
+    const orderMap = {};
+    PRANT_ORDER.forEach((name, index) => {
+      orderMap[name.trim()] = index;
+    });
+
+    // 3️⃣ Sort according to sequence
+    const sortedPrants = prants.sort((a, b) => {
+      const indexA =
+        orderMap[a.name?.trim()] !== undefined
+          ? orderMap[a.name.trim()]
+          : 9999;
+
+      const indexB =
+        orderMap[b.name?.trim()] !== undefined
+          ? orderMap[b.name.trim()]
+          : 9999;
+
+      return indexA - indexB;
+    });
+
+
+    // 4️⃣ Return response
+    return res.status(200).json(sortedPrants);
+
   } catch (error) {
-    res.status(500).json({
+    console.error("❌ getPrant error:", error);
+    return res.status(500).json({
       message: "Error fetching prants",
-      error: error.message,
+      error: error.message
     });
   }
 };
+
+
 export const getParticularPrantname = async (req, res) => {
   try {
     const { id, role } = req.params;
@@ -1939,7 +2020,6 @@ export const addOrUpdateAbkmUser = async (req, res) => {
       });
     }
   } catch (error) {
-    console.log("error", error);
     res.status(500).json({
       message: "Error adding or updating user",
       error: error.message,
@@ -1961,8 +2041,6 @@ export const sendMail = async (req, res) => {
       email
     } = req.body;
 
-    console.log("sanghatan", sanghatan)
-    console.log("prant", prant)
     if (
       !name ||
       // !date ||
@@ -2004,30 +2082,51 @@ export const sendMail = async (req, res) => {
     });
 
     let detailName;
-    if (sanghatan.trim() !== "") {
+    if (sanghatan) {
       detailName = sanghatan;
     } else {
       detailName = prant;
     }
-    const mailOptions = {
-      from: "abpslistforngp@gmail.com",
-      to: `${email}, sachivalay@sanghngp.org`,
-      subject: `(${detailName}) सूची`,
-      text: `
-        नमस्ते,\n\nप्रतिनिधी सभा 2026 के लिये आपके संगठन की सूची संलग्न है।\n\nधन्यवाद।\n\n
-        कृपया इस मेल पर कोई जवाब ना दे| sachivalay@sanghngp.org पर ही संपर्क करें|
-        Please do not reply to this email. All communication to be done on sachivalay@sanghngp.org,
-      `,
-      attachments: [
-        {
-          filename: "attachment.csv",
-          content: csv,
-          contentType: "text/csv; charset=utf-8", // ✅ ensure correct charset
-          encoding: "utf-8", // ✅ explicitly set encoding
-        },
-      ],
-    };
-    console.log(mailOptions)
+
+
+    let mailOptions = {};
+
+    if (prant) {
+      mailOptions = {
+        from: "abpslistforngp@gmail.com",
+        to: `${email}, sachivalay@sanghngp.org`,
+        subject: `(${detailName}) प्रांत सूची`,
+        text: `नमस्ते,\n\nप्रतिनिधी सभा 2026 के लिये आपके प्रांत की सूची संलग्न है।\n\nधन्यवाद।\n\n
+              कृपया इस मेल पर कोई जवाब ना दे| sachivalay@sanghngp.org पर ही संपर्क करें|
+              Please do not reply to this email. All communication to be done on sachivalay@sanghngp.org`,
+        attachments: [
+          {
+            filename: `${detailName}_प्रांत_सूची.csv`,
+            content: csv,
+            contentType: "text/csv; charset=utf-8", // ✅ ensure correct charset
+            encoding: "utf-8", // ✅ explicitly set encoding
+          },
+        ],
+      };
+    } else if (sanghatan) {
+      mailOptions = {
+        from: "abpslistforngp@gmail.com",
+        to: `${email}, sachivalay@sanghngp.org`,
+        subject: `(${detailName}) संगठन सूची`,
+        text: `नमस्ते,\n\nप्रतिनिधी सभा 2026 के लिये आपके संगठन की सूची संलग्न है।\n\nधन्यवाद।\n\n
+                    कृपया इस मेल पर कोई जवाब ना दे| sachivalay@sanghngp.org पर ही संपर्क करें|
+                    Please do not reply to this email. All communication to be done on sachivalay@sanghngp.org`,
+        attachments: [
+          {
+            filename: `${detailName}_संगठन_सूची.csv`,
+            content: csv,
+            contentType: "text/csv; charset=utf-8", // ✅ ensure correct charset
+            encoding: "utf-8", // ✅ explicitly set encoding
+          },
+        ],
+      };
+    }
+
     await transporter.sendMail(mailOptions);
     res.status(200).json({ message: "मेल सफलतापूर्वक भेजा गया।" });
   } catch (error) {
@@ -2089,7 +2188,6 @@ export const deleteAdminSetting = async (req, res) => {
 export const getSubmitData = async (req, res) => {
   try {
     const data = await Submitted.find();
-    console.log(data)
     res.json(data);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -2235,6 +2333,24 @@ export const deleteKaryakriMandalUser = async (req, res) => {
     }
 
     res.status(200).json({ message: "User deleted successfully" });
+  } catch (error) {
+    console.error("Delete error:", error);
+    res.status(500).json({
+      message: "Error deleting user",
+      error: error.message,
+    });
+  }
+}
+
+
+// get prant list based on kshetra
+export const getPrantBasedOnKshetra = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const prants = await Prant.find({ kshetra_id: id })
+
+    res.status(200).json(prants);
   } catch (error) {
     console.error("Delete error:", error);
     res.status(500).json({

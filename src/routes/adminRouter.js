@@ -18,7 +18,8 @@ import {
   getParticularPrantname,
   getParticularSanghatanname, sendMail, createAdminSetting, getAdminSettings, updateAdminSetting, deleteAdminSetting, createSubmitData, getSubmitData,
   updateDropdownItem,
-  deleteKaryakriMandalUser
+  deleteKaryakriMandalUser,
+  getPrantBasedOnKshetra
 } from "../controllers/adminController.js";
 import { authenticate } from "../middlewares/auth.js";
 import multer from "multer";
@@ -52,6 +53,9 @@ router.get("/sanghatan/:id", authenticate, getParticularSanghatanname);
 router.get("/all-dropdowns", authenticate, getAllDropdowns);
 router.post("/add-pratinidhi-user", authenticate, addOrUpdatePratinidhiUser);
 router.post("/add_dropdown/:type", authenticate, addOrUpdateUser);
+
+// based on kshetra get the prantlist
+router.get("/kshetraprantlist/:id", authenticate, getPrantBasedOnKshetra)
 
 router.put("/update-status/:type/:id", authenticate, updateDropdownItem);
 
