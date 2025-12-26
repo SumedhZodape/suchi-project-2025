@@ -19,7 +19,8 @@ import {
   getParticularSanghatanname, sendMail, createAdminSetting, getAdminSettings, updateAdminSetting, deleteAdminSetting, createSubmitData, getSubmitData,
   updateDropdownItem,
   deleteKaryakriMandalUser,
-  getPrantBasedOnKshetra
+  getPrantBasedOnKshetra,
+  getSubmitDataOfThatUser
 } from "../controllers/adminController.js";
 import { authenticate } from "../middlewares/auth.js";
 import multer from "multer";
@@ -66,6 +67,10 @@ router.put("/setting/:id", authenticate, updateAdminSetting); // PUT update
 router.delete("/setting/:id", authenticate, deleteAdminSetting); // DELETE
 router.get("/submitted", authenticate, getSubmitData);
 router.post("/submitted", authenticate, createSubmitData);
+
+
+// get perticular user submitted the data details
+router.get("/user_submitted_info", authenticate, getSubmitDataOfThatUser);
 
 // prant pracharak baithak
 router.get(

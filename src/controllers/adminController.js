@@ -16,6 +16,7 @@ import nodemailer from "nodemailer";
 import { Parser } from "json2csv";
 import AdminSetting from "../models/AdminSetting.js";
 import Submitted from "../models/Submitted.js";
+import SystemUser from '../models/SystemUser.js'
 // Controller to handle CSV file upload and processing
 // Utility: Validate required fields
 const validateRequiredFields = (row, requiredFields) => {
@@ -2187,12 +2188,60 @@ export const deleteAdminSetting = async (req, res) => {
 
 export const getSubmitData = async (req, res) => {
   try {
-    const data = await Submitted.find();
-    res.json(data);
+    const data = await Submitted.find()
+      .populate({
+        path: "system_user_id",
+        select: "prant_id sanghatan_id",
+        populate: [
+          {
+            path: "prant_id",
+            select: "name",
+          },
+          {
+            path: "sanghatan_id",
+            select: "name",
+          },
+        ],
+      })
+      .select("name email date");
+
+    // 🔄 Normalize output
+    const response = data.map(item => ({
+      name: item.name,
+      email: item.email,
+      date: item.date,
+      prantName: item.system_user_id?.prant_id?.name || null,
+      sanghatanName: item.system_user_id?.sanghatan_id?.name || null,
+    }));
+
+    res.status(200).json(response);
+
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error("getSubmitData error:", err);
+    res.status(500).json({ error: "Internal server error" });
   }
 };
+
+
+export const getSubmitDataOfThatUser = async (req, res) => {
+  try {
+    const systemUserId = req.user?.id;
+
+    // 3️⃣ Find submission of that user
+    const submittedData = await Submitted.findOne({
+      system_user_id: systemUserId,
+    });
+
+  
+    return res.status(200).json(submittedData);
+
+  } catch (err) {
+    console.error("getSubmitDataOfThatUser error:", err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+
 export const createSubmitData = async (req, res) => {
   try {
     const { system_user_id, name, email, date } = req.body;
