@@ -2077,8 +2077,8 @@ export const sendMail = async (req, res) => {
     const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
-        user: "vedantkhambadkar1234@gmail.com",
-        pass: "fbsq xonb bjsn ktqd",
+        user: "abpslistforngp@gmail.com",
+        pass: "yyzb iisc phcz srag",
       },
     });
 
@@ -2094,8 +2094,8 @@ export const sendMail = async (req, res) => {
 
     if (prant) {
       mailOptions = {
-        from: "vedantkhambadkar1234@gmail.com",
-        to: `${email}, sumedhzodape143@gmail.com`,
+        from: "abpslistforngp@gmail.com",
+        to: `${email}, sachivalay@sanghngp.org`,
         subject: `(${detailName}) प्रांत सूची`,
         text: `नमस्ते,\n\nप्रतिनिधी सभा 2026 के लिये आपके प्रांत की सूची संलग्न है।\n\nधन्यवाद।\n\n
               कृपया इस मेल पर कोई जवाब ना दे| sachivalay@sanghngp.org पर ही संपर्क करें|
@@ -2111,8 +2111,8 @@ export const sendMail = async (req, res) => {
       };
     } else if (sanghatan) {
       mailOptions = {
-        from: "vedantkhambadkar1234@gmail.com",
-        to: `${email}, sumedhzodape143@gmail.com`,
+        from: "abpslistforngp@gmail.com",
+        to: `${email}, sachivalay@sanghngp.org`,
         subject: `(${detailName}) संगठन सूची`,
         text: `नमस्ते,\n\nप्रतिनिधी सभा 2026 के लिये आपके संगठन की सूची संलग्न है।\n\nधन्यवाद।\n\n
                     कृपया इस मेल पर कोई जवाब ना दे| sachivalay@sanghngp.org पर ही संपर्क करें|
