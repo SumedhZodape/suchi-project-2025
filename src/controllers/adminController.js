@@ -703,8 +703,8 @@ export const getPrant = async (req, res) => {
     "उ.तमिलनाडु",
     "कर्नाटक द.",
     "कर्नाटक उ.",
-    "आन्ध्र प्रदेश",
     "तेलंगाना",
+    "आन्ध्र प्रदेश",
     "कोकण",
     "पश्चिम महाराष्ट्र",
     "देवगिरी",
@@ -2077,8 +2077,8 @@ export const sendMail = async (req, res) => {
     const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
-        user: "abpslistforngp@gmail.com",
-        pass: "yyzb iisc phcz srag",
+        user: "vedantkhambadkar1234@gmail.com",
+        pass: "fbsq xonb bjsn ktqd",
       },
     });
 
@@ -2094,8 +2094,8 @@ export const sendMail = async (req, res) => {
 
     if (prant) {
       mailOptions = {
-        from: "abpslistforngp@gmail.com",
-        to: `${email}, sachivalay@sanghngp.org`,
+        from: "vedantkhambadkar1234@gmail.com",
+        to: `${email}, sumedhzodape143@gmail.com`,
         subject: `(${detailName}) प्रांत सूची`,
         text: `नमस्ते,\n\nप्रतिनिधी सभा 2026 के लिये आपके प्रांत की सूची संलग्न है।\n\nधन्यवाद।\n\n
               कृपया इस मेल पर कोई जवाब ना दे| sachivalay@sanghngp.org पर ही संपर्क करें|
@@ -2111,8 +2111,8 @@ export const sendMail = async (req, res) => {
       };
     } else if (sanghatan) {
       mailOptions = {
-        from: "abpslistforngp@gmail.com",
-        to: `${email}, sachivalay@sanghngp.org`,
+        from: "vedantkhambadkar1234@gmail.com",
+        to: `${email}, sumedhzodape143@gmail.com`,
         subject: `(${detailName}) संगठन सूची`,
         text: `नमस्ते,\n\nप्रतिनिधी सभा 2026 के लिये आपके संगठन की सूची संलग्न है।\n\nधन्यवाद।\n\n
                     कृपया इस मेल पर कोई जवाब ना दे| sachivalay@sanghngp.org पर ही संपर्क करें|
@@ -2250,6 +2250,17 @@ export const createSubmitData = async (req, res) => {
       return res.status(400).json({ error: "Missing required fields" });
     }
 
+    const existingSubmission = await Submitted.findOne({ system_user_id });
+    if (existingSubmission) {
+      const updatedSubmission = await Submitted.findOneAndUpdate(
+        { system_user_id },
+        { name, email, date },
+        { new: true }
+      );
+      return res.status(200).json(updatedSubmission);
+    } 
+
+    // or create new
     const submitted = new Submitted({
       system_user_id,
       name,
