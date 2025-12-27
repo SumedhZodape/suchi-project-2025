@@ -17,6 +17,7 @@ import { Parser } from "json2csv";
 import AdminSetting from "../models/AdminSetting.js";
 import Submitted from "../models/Submitted.js";
 import SystemUser from '../models/SystemUser.js'
+import XLSX from "xlsx";
 // Controller to handle CSV file upload and processing
 // Utility: Validate required fields
 const validateRequiredFields = (row, requiredFields) => {
@@ -2056,23 +2057,34 @@ export const sendMail = async (req, res) => {
       return res.status(400).json({ error: "All fields are required." });
     }
 
-    // Corrected: assign a key for "अ. क्र."
-    const fields = [
-      { label: "अ. क्र.", value: "serial" },
-      ...userDataKeys.map((key, index) => ({
-        label: columns[index + 1], // skipping "अ. क्र."
-        value: key,
-      })),
-    ];
+    /* ================= PREPARE DATA ================= */
+    const excelData = [];
 
-    // Insert serial number manually
-    const dataWithSerial = filteredData.map((row, index) => ({
-      serial: index + 1,
-      ...row,
-    }));
+    // Header row
+    excelData.push([
+      "अ. क्र.",
+      ...userDataKeys.map((_, i) => columns[i + 1]),
+    ]);
 
-    const json2csvParser = new Parser({ fields });
-    const csv = json2csvParser.parse(dataWithSerial);
+    // Data rows
+    filteredData.forEach((row, index) => {
+      excelData.push([
+        index + 1,
+        ...userDataKeys.map((k) => row[k] ?? ""),
+      ]);
+    });
+
+    /* ================= CREATE EXCEL ================= */
+    const worksheet = XLSX.utils.aoa_to_sheet(excelData);
+    const workbook = XLSX.utils.book_new();
+
+    XLSX.utils.book_append_sheet(workbook, worksheet, "सूची");
+
+    // IMPORTANT: generate TRUE XLSX binary
+    const excelBuffer = XLSX.write(workbook, {
+      type: "buffer",
+      bookType: "xlsx",
+    });
 
     const transporter = nodemailer.createTransport({
       service: "gmail",
@@ -2102,10 +2114,10 @@ export const sendMail = async (req, res) => {
               Please do not reply to this email. All communication to be done on sachivalay@sanghngp.org`,
         attachments: [
           {
-            filename: `${detailName}_प्रांत_सूची.csv`,
-            content: csv,
-            contentType: "text/csv; charset=utf-8", // ✅ ensure correct charset
-            encoding: "utf-8", // ✅ explicitly set encoding
+            filename: `${detailName}_सूची.xlsx`,
+            content: excelBuffer,
+            contentType:
+              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
           },
         ],
       };
@@ -2119,10 +2131,10 @@ export const sendMail = async (req, res) => {
                     Please do not reply to this email. All communication to be done on sachivalay@sanghngp.org`,
         attachments: [
           {
-            filename: `${detailName}_संगठन_सूची.csv`,
-            content: csv,
-            contentType: "text/csv; charset=utf-8", // ✅ ensure correct charset
-            encoding: "utf-8", // ✅ explicitly set encoding
+            filename: `${detailName}_सूची.xlsx`,
+            content: excelBuffer,
+            contentType:
+              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
           },
         ],
       };
@@ -2232,7 +2244,7 @@ export const getSubmitDataOfThatUser = async (req, res) => {
       system_user_id: systemUserId,
     });
 
-  
+
     return res.status(200).json(submittedData);
 
   } catch (err) {
@@ -2258,7 +2270,7 @@ export const createSubmitData = async (req, res) => {
         { new: true }
       );
       return res.status(200).json(updatedSubmission);
-    } 
+    }
 
     // or create new
     const submitted = new Submitted({
