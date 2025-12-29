@@ -812,8 +812,8 @@ export const getParticularPrantname = async (req, res) => {
     // ================= ROLE BASED CONDITIONS =================
     if (role === "user") {
       query.$and = [
-        { prakar_id: "6842c12f4919f039da177f50" },
-        { sanghatan_id: "6842c4b64919f039da177fd1" }
+        // { prakar_id: "6842c12f4919f039da177f50" },
+        // { sanghatan_id: "6842c4b64919f039da177fd1" }
       ];
     }
     else if (role !== "admin") {
